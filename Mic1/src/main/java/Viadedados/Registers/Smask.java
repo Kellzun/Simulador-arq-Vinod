@@ -9,7 +9,6 @@ package Viadedados.Registers;
  * @author arthu
  */
 public class Smask extends Register {
-    private int[] register;
 
     public Smask(int size_bits) {
         super(size_bits);

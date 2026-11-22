@@ -178,4 +178,20 @@ public class ControlUnit {
        
    }
    
+   public MPC getMpc() { return mpc; }
+   public MBR getMbr() { return mbr; }
+   public MAR getMar() { return mar; }
+   public RegistersCollection getRegisters() { return registers; }
+   public MainMemory getMemory() { return memory; }
+   public MIR getMir() { return mir; }
+   
+   // zera tudo antes de carregar um novo programa
+   public void resetAll() {
+       mpc.reset_MPC();
+       mbr.resetRegister();
+       mar.resetRegister();
+       registers.reset_all_registers();
+       read_pending = false;
+       write_pending = false;
+    }
 }

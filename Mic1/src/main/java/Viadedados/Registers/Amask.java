@@ -9,8 +9,7 @@ package Viadedados.Registers;
  * @author arthu
  */
 public class Amask extends Register {
-    private int[] register;
-
+ 
     public Amask(int size_bits) {
         super(size_bits);
         this.register = new int[]{0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1};
