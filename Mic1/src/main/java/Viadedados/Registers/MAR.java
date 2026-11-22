@@ -16,9 +16,9 @@ public class MAR extends Register {
         super(size_bits);
     }
     
-    public void load(Integer[] latchB) {// MAR receberá endereço do latch B (tem 16 bits)
+    public void load(int[] latchB) {// MAR receberá endereço do latch B (tem 16 bits)
         int counter = 0;
-        for (int i=NUM_ADDRESS; i<=latchB.length;i++) {
+        for (int i = NUM_ADDRESS; i < latchB.length; i++) {
             this.register[counter] = latchB[i]; counter++;
         }
     }

@@ -5,8 +5,6 @@
 package Unidade_de_Controle;
 
 import Viadedados.Registers.Register;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  *
@@ -26,12 +24,14 @@ public class MIR extends Register{
     //      AMUX | COND | ULA | DESL | MBR | MAR | RD | WR | En C | Bar. C | Bar. B | Bar. A | ADDR
     // bits: 1   |  2   |  2  |  2   |  1  |  1  | 1  | 1  |   1  |   4    |   4    |   4    |  8
     
-    public List<Integer> retrieve_camp(int start_bit, int end_bit) {
-        List<Integer> required_camp = new ArrayList<>();
+    public int[] retrieve_camp(int start_bit, int end_bit) {
+        int[] required_camp = new int[end_bit - start_bit];
         
         for (int i = start_bit; i < end_bit; i++) {//pegando o campo que a gente quer
-            required_camp.add(this.register[i]);
+            required_camp[i - start_bit] = this.register[i];
         }
         return required_camp;
     }
+
+    
 }

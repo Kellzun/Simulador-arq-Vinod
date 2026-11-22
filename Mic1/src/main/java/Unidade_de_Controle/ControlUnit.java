@@ -15,10 +15,12 @@ public class ControlUnit {
    // nessa classe juntaremos tudo
    
    // constantes importantes
-   private final int NUMBER_OF_ADDRESSES = 4096;
-   private final int SIZE_MAR = 12;
-   private final int SIZE_CONTROL_STORE = 256;
-   private final int WORD = 16;
+   private static final int NUMBER_OF_ADDRESSES = 4096;
+   private static final int MAR_SIZE = 12;
+   private static final int ADDRESS_SIZE = 8;
+   private static final int SIZE_CONTROL_STORE = 256;
+   private static final int MIR_SIZE = 32;
+   private static final int WORD = 16;
    
    // Posições dos campos no MIR (32 bits, índice 0 = MSB)
    private static final int AMUX = 0; // 1 bit
@@ -34,19 +36,31 @@ public class ControlUnit {
    private static final int ADDR = 24, ADDR_LENGTH = 8;
    
    
-   // Componentes utilizados na Unidade de Controle
-   private final MPC mpc = new MPC(8);
+   // Componentes
+   private final MPC mpc = new MPC(ADDRESS_SIZE);
    private final ControlStore controlStore = new ControlStore(SIZE_CONTROL_STORE);
-   private final MUX mmux = new MUX(2, 8, 1);
+   private final MUX mmux = new MUX(2, ADDRESS_SIZE, 1);
    private final MUX amux = new MUX(2, WORD, 1);
    private final FlowControl flowControl = new FlowControl();
-   private final ALU ula = new ALU();
+   private final ALU alu = new ALU();
    private final Shifter shifter = new Shifter();
-   private final MAR mar = new MAR(SIZE_MAR);
+   private final MIR mir = new MIR(MIR_SIZE);
+   private final MAR mar = new MAR(MAR_SIZE);
    private final MBR mbr = new MBR(WORD);
-   private final MainMemory memory= new MainMemory(NUMBER_OF_ADDRESSES);
+   private final MainMemory memory = new MainMemory(NUMBER_OF_ADDRESSES);
+   private int[] busC = new int[WORD]; // barramento C
    
-   public void CycleExecution() {
+   // controle RD e WR
+   private boolean read_pending = false;
+   private boolean write_pending = false;
+   // latches A e B
+   private final Latch latchA = new Latch();
+   private final Latch latchB = new Latch();
+   
+   // registradores
+   private final RegistersCollection registers = new RegistersCollection();
+   
+   public void cycleExecution() {
        subcycle01();
        subcycle02();
        subcycle03();
@@ -54,15 +68,113 @@ public class ControlUnit {
    }
    
    private void subcycle01() {
-       
+       // mpc, memoria de controle e mir
+       // mir recebe a instrucao na posicao MPC da memoria de controle
+       mir.setRegister(controlStore.getInstruction(mpc.getRegister()));
    }
    private void subcycle02() {
+       // vamos jogar no latch A e no latch B lendo MIR
+       // posicao latchA = 20 -> 23 | posicao latchB = 16 -> 19
+       int[] fieldB, fieldA;
+       int operationA = 0, operationB = 0; // conversao para decimal
+       
+       fieldB = mir.retrieve_camp(16, 20); // barramento B
+       fieldA = mir.retrieve_camp(20, 24); // barramento A
+       
+       // transformamos o codigo da operação para procurar o registrador
+       // conversão de binário para decimal
+       for (int i = 0; i < fieldB.length; i++) {
+           operationB = (operationB << 1) | fieldB[i];
+       }
+       for (int i = 0; i < fieldA.length; i++) {
+           operationA = (operationA << 1) | fieldA[i];
+       }
+       
+       //jogando nos latches os registradores nas posições opA e opB
+       latchA.setValue_stored(registers.getRegister(operationA).getRegister());
+       latchB.setValue_stored(registers.getRegister(operationB).getRegister());
        
    }
    private void subcycle03() {
+       amux.setInput(0, latchA.getValue_stored()); amux.setInput(1, mbr.write());
        
+       int[] Amuxbit = mir.retrieve_camp(AMUX, AMUX + 1);
+       amux.setControl(Amuxbit);
+       
+       // transformamos o codigo da operação para ULA
+       // conversão de binário para decimal
+       int[] ULAbit = mir.retrieve_camp(ALU, ALU + ALU_LENGTH); // pedaço da ula
+       int[] SHbit = mir.retrieve_camp(SH, SH + SH_LENGTH); // pedaço do deslocamento(shifter)
+       
+       int ULAint = 0, SHint = 0;
+       for (int i = 0; i < ULAbit.length; i++) {
+           ULAint = (ULAint << 1) | ULAbit[i];
+       }
+       for (int i = 0; i < SHbit.length; i++) {
+           SHint = (SHint << 1) | SHbit[i];
+       }
+       
+       int[] ULAoutput = alu.operateALU(amux.getOutput(), latchB.getValue_stored(), ULAint);
+       busC = shifter.apply_operation(ULAoutput.clone(), SHint);
+       
+       //pegando o bit do MAR no MIR
+       int[] MARbit = mir.retrieve_camp(F_MAR, F_MAR + 1);
+       
+       if (MARbit[0] == 1) {
+            mar.load(latchB.getValue_stored());
+       }
    }
    private void subcycle04() {
+       // ENC
+       int[] ENCbit = mir.retrieve_camp(ENC, ENC + 1);
+       if (ENCbit[0] == 1) {
+            // conversão de binário para decimal do campo C
+           int[] fieldC = mir.retrieve_camp(C, C + REG_LENGTH);
+           int indexC = 0;
+           for (int i = 0; i < fieldC.length; i++) {
+                indexC = (indexC << 1) | fieldC[i];
+           }
+           registers.getRegister(indexC).setRegister(busC);
+       }
+       
+       int[] MBRbit = mir.retrieve_camp(F_MBR, F_MBR + 1);
+       if (MBRbit[0] == 1) {
+           mbr.setRegister(busC);
+       }
+       
+       // tratar RD e WR
+       int[] rd = mir.retrieve_camp(RD, RD + 1);
+       int[] wr = mir.retrieve_camp(WR, WR + 1);
+       
+       // convertendo o MAR para inteiro
+       int[] marAddress = mar.getRegister();
+       int marAddressint = 0;
+       for (int i = 0; i < marAddress.length; i++) {
+           marAddressint = (marAddressint << 1) | marAddress[i];
+       }
+       
+       if (rd[0] == 1) {
+           if (read_pending) {
+               mbr.setRegister(memory.read_Memory_storage(marAddressint));
+               read_pending = false;
+           } else read_pending = true;
+       } else read_pending = false;
+       
+       if (wr[0] == 1) {
+           if (write_pending) {
+               memory.write_data(mbr.getRegister(), marAddressint);
+               write_pending = false;
+           } else write_pending = true;
+       } else write_pending = false;
+       
+       // proximo MPC
+       int[] cond = mir.retrieve_camp(COND, COND + COND_LENGTH);
+       int[] addr = mir.retrieve_camp(ADDR, ADDR + ADDR_LENGTH);
+       int m = flowControl.calculateM(cond, alu.getN(), alu.getZ());
+       mmux.setInput(0, mpc.incrementMPC());
+       mmux.setInput(1, addr);
+       mmux.setControl(new int[]{m});
+       mpc.setRegister(mmux.getOutput());
        
    }
    

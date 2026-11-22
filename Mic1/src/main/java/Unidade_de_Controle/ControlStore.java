@@ -98,4 +98,15 @@ public class ControlStore extends Memory{
         this.memory_storage.add(new int[]{0,1,1,0,0,0,0,0,0,0,0,1,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,0,1,0,1,1}); //78
     }
     
+    public int[] getInstruction(int[] MPC) {
+        
+        // transformamos o codigo da operacao para procurar na memória de controle
+        int operation_decimal= 0;
+        for (int i = 0; i < MPC.length; i++) {
+            // conversão de binário para decimal
+            operation_decimal = (operation_decimal << 1) | MPC[i];
+        }
+        
+        return this.memory_storage.get(operation_decimal);
+    }
 }

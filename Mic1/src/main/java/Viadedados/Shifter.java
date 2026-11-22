@@ -10,7 +10,7 @@ package Viadedados;
  */
 public class Shifter {
     private int[] data; // aqui, recebemos 16 bits
-    private int[] op; // na operação, temos 2 bits
+    private int op; // na operação, temos 2 bits
     private final int FIRST_BIT = 0;
     private final int FINAL_BIT = 15;
     private final int SHIFT_RIGHT = 1;
@@ -25,25 +25,20 @@ public class Shifter {
     public Shifter() {
     }
     
-    public int[] apply_operation(int[] data, int[] op) {
+    public int[] apply_operation(int[] data, int op) {
         this.data = data; this.op = op;
-        // transformamos o codigo da operacao para decimal para ficar mais intuitivo
-        int operation_decimal= 0;
-        for (int i = 0; i < this.op.length; i++) {
-            // conversão de binário para decimal
-            operation_decimal = (operation_decimal << 1) | this.op[i];
-        }
-        
-        if (operation_decimal == MAINTAIN) return data;
         
         
-        if (operation_decimal == SHIFT_LEFT) { // desloca 1 bit para direita
+        if (op == MAINTAIN) return data;
+        
+        
+        if (op == SHIFT_RIGHT) { // desloca 1 bit para direita
             for (int i = this.data.length - 1; i > 0; i--) {
                 this.data[i] = this.data[i-1];
             }
             this.data[FIRST_BIT] = 0;
         }
-        if (operation_decimal == SHIFT_RIGHT) { // desloca 1 bit para direita
+        if (op == SHIFT_LEFT) { // desloca 1 bit para esquerda
             for (int i = 0; i < this.data.length - 1; i++) {
                 this.data[i] = this.data[i+1];
             }
@@ -61,11 +56,11 @@ public class Shifter {
         this.data = data;
     }
 
-    public int[] getOp() {
+    public int getOp() {
         return op;
     }
 
-    public void setOp(int[] op) {
+    public void setOp(int op) {
         this.op = op;
     }
     

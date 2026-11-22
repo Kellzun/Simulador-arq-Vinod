@@ -19,7 +19,8 @@ public class ALU {
     // 01 -> A AND B
     // 10 -> A
     // 11 -> NOT A
-
+    // op já vem como decimal
+    
     public ALU() {
     }
     
@@ -60,4 +61,7 @@ public class ALU {
         }
         return this.output;
     }
+    
+    public int getN() { return this.Nbit; }
+    public int getZ() { return this.Zbit; }
 }

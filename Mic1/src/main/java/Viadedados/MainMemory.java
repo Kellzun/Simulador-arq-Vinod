@@ -5,7 +5,6 @@
 package Viadedados;
 
 import Viadedados.Registers.Memory;
-import java.util.List;
 
 /**
  *
@@ -17,7 +16,7 @@ public class MainMemory extends Memory{
     public MainMemory(int size) {
         super(size);
         for (int i=0; i<size; i++) {
-            memory_storage.set(i, this.null_address);
+            memory_storage.add(this.null_address);
         }
     }
     public void reset_memory_storage() {
