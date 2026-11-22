@@ -10,12 +10,12 @@ package Viadedados.Registers;
  */
 public class RegisterOne extends Register{
 
-    public RegisterOne(int tamanho_bits) {
-        super(tamanho_bits);
-        for (int i=0;i<tamanho_bits;i++) {
+    public RegisterOne(int size_bits) {
+        super(size_bits);
+        for (int i=0;i<size_bits;i++) {
             this.register[i] = 0;
         }
-        this.register[tamanho_bits-1] = 1;
+        this.register[size_bits-1] = 1;
     }
     
 }

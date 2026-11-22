@@ -9,8 +9,8 @@ package Viadedados.Registers;
  * @author arthu
  */
 public class InstructionRegister extends Register { // o Registrador de Instrução guarda o a Instrução que será executada
-    public InstructionRegister(int tamanho_bits) {
-        super(tamanho_bits);
+    public InstructionRegister(int size_bits) {
+        super(size_bits);
     }
     
 }

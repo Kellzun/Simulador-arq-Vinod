@@ -8,6 +8,11 @@ package Viadedados.Registers;
  *
  * @author arthu
  */
-public class Smask {
+public class Smask extends Register {
+    private final int[] register = new int[]{0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1};
+
+    public Smask(int size_bits) {
+        super(size_bits);
+    }
     
 }

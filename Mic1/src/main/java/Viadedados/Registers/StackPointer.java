@@ -10,9 +10,9 @@ package Viadedados.Registers;
  */
 public class StackPointer extends Register {
 
-    public StackPointer(int tamanho_bits) {
-        super(tamanho_bits);
+    public StackPointer(int size_bits) {
+        super(size_bits);
         this.register[3] = 1;
     }
-    
+
 }

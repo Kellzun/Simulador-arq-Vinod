@@ -11,8 +11,8 @@ package Viadedados.Registers;
 public class Register { // usaremos para todos os outros registradores e sem alterações para os A, B, C, D, E e F.
     protected int[] register; //vetor de int que guarda em binário 1 e 0
     
-    public Register(int tamanho_bits) { //vamos definir tamanho_bits = 16
-        this.register = new int[tamanho_bits]; //definindo registrador e seu tamanho de bits
+    public Register(int size_bits) { //vamos definir size_bits = 16
+        this.register = new int[size_bits]; //definindo registrador e seu tamanho de bits
     }
     
     public int[] getRegister() { //enviando o que está guardado no registrador
@@ -26,6 +26,12 @@ public class Register { // usaremos para todos os outros registradores e sem alt
     public void setRegister(int[] memory_line) { //receber palavra da memoria
         for (int i=0; i<register.length; i++) {
             this.register[i] = memory_line[i];
+        }
+    }
+    
+    public void resetRegister() {
+        for (int i = 0; i < this.register.length; i++) {
+            this.register[i] = 0;
         }
     }
 }

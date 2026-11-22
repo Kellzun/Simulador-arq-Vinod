@@ -9,8 +9,8 @@ package Viadedados.Registers;
  * @author arthu
  */
 public class Accumulator extends Register {
-    public Accumulator(int tamanho_bits) { //acumulador
-        super(tamanho_bits);
+    public Accumulator(int size_bits) { //acumulador
+        super(size_bits);
     }
     
 }

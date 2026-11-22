@@ -10,9 +10,9 @@ package Viadedados.Registers;
  */
 public class RegisterMinusOne extends Register {
 
-    public RegisterMinusOne(int tamanho_bits) {
-        super(tamanho_bits);
-        for(int i=0; i<tamanho_bits; i++) {
+    public RegisterMinusOne(int size_bits) {
+        super(size_bits);
+        for(int i=0; i<size_bits; i++) {
             this.register[i] = 1;
         }
     }

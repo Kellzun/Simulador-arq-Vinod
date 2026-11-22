@@ -10,9 +10,9 @@ package Viadedados.Registers;
  */
 public class RegisterZero extends Register{
 
-    public RegisterZero(int tamanho_bits) {
-        super(tamanho_bits);
-        for (int i=0; i<tamanho_bits; i++) {
+    public RegisterZero(int size_bits) {
+        super(size_bits);
+        for (int i=0; i<size_bits; i++) {
             this.register[i] = 0;
         }
     }

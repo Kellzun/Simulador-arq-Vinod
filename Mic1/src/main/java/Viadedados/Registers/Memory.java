@@ -12,9 +12,9 @@ import java.util.List;
  * @author arthu
  */
 public class Memory {
-    private List<int[]> memory_storage;
+    public List<int[]> memory_storage;
     
-    public Memory(int size){
+    public Memory(int size){ // definida largura como 16 bits
        this.memory_storage = new ArrayList<int[]>(size);
     } 
 
@@ -26,7 +26,12 @@ public class Memory {
         this.memory_storage = memory_storage;
     }
     
-    public int[] getpositionMemory(int position) {
+    //ajuste
+    public void write_Memory_storage(int[] data, int position) {
+        this.memory_storage.add(position, data);
+    }
+  
+    public int[] read_Memory_storage(int position) {
         return this.memory_storage.get(position);
     }
     
