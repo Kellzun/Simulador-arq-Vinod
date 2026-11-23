@@ -6,6 +6,7 @@ package Unidade_de_Controle;
 
 import Viadedados.*;
 import Viadedados.Registers.*;
+import Viadedados.CacheMemory;
 
 /**
  *
@@ -48,11 +49,16 @@ public class ControlUnit {
    private final MAR mar = new MAR(MAR_SIZE);
    private final MBR mbr = new MBR(WORD);
    private final MainMemory memory = new MainMemory(NUMBER_OF_ADDRESSES);
+   private final CacheMemory cache = new CacheMemory();
    private int[] busC = new int[WORD]; // barramento C
    
    // controle RD e WR
    private boolean read_pending = false;
    private boolean write_pending = false;
+   private int lastMicroAddress = -1;
+   private String lastMicroInstruction = "";
+   private boolean halted = false;
+   
    // latches A e B
    private final Latch latchA = new Latch();
    private final Latch latchB = new Latch();
@@ -61,6 +67,23 @@ public class ControlUnit {
    private final RegistersCollection registers = new RegistersCollection();
    
    public void cycleExecution() {
+       
+    // Captura o endereço da microinstrução atual
+    lastMicroAddress = bitsToInt(mpc.getRegister());
+
+    // Busca o texto correspondente
+    if (lastMicroAddress >= 0 &&
+        lastMicroAddress < MicroInstructions.microInstructionsAsStrings.length) {
+
+        lastMicroInstruction =
+            MicroInstructions.microInstructionsAsStrings[lastMicroAddress];
+
+    } else {
+        lastMicroInstruction =
+            "Microinstrução não encontrada: " + lastMicroAddress;
+    }
+
+    // Executa os quatro subciclos
        subcycle01();
        subcycle02();
        subcycle03();
@@ -135,6 +158,10 @@ public class ControlUnit {
                 indexC = (indexC << 1) | fieldC[i];
            }
            registers.getRegister(indexC).setRegister(busC);
+           // HALT é reconhecido quando a palavra da instrução chega ao IR.
+           if (indexC == RegistersCollection.IR && bitsToInt(busC) == 0xFF00) {
+               halted = true;
+           }
        }
        
        int[] MBRbit = mir.retrieve_camp(F_MBR, F_MBR + 1);
@@ -155,17 +182,32 @@ public class ControlUnit {
        
        if (rd[0] == 1) {
            if (read_pending) {
-               mbr.setRegister(memory.read_Memory_storage(marAddressint));
+               int[] value = cache.read(marAddressint, memory);
+               //mbr.setRegister(memory.read_Memory_storage(marAddressint));
+               mbr.setRegister(value);
+               if (value != null) {
+                   mbr.setRegister(value);
+               }
+               
                read_pending = false;
-           } else read_pending = true;
-       } else read_pending = false;
+           } else {
+               read_pending = true;
+           }
+       } else {
+           read_pending = false;
+       }
        
        if (wr[0] == 1) {
            if (write_pending) {
-               memory.write_data(mbr.getRegister(), marAddressint);
+               cache.write(marAddressint, mbr.getRegister(), memory);
+               //memory.write_data(mbr.getRegister(), marAddressint);
                write_pending = false;
-           } else write_pending = true;
-       } else write_pending = false;
+           } else {
+               write_pending = true;
+           }
+       } else {
+           write_pending = false;
+       }
        
        // proximo MPC
        int[] cond = mir.retrieve_camp(COND, COND + COND_LENGTH);
@@ -183,15 +225,38 @@ public class ControlUnit {
    public MAR getMar() { return mar; }
    public RegistersCollection getRegisters() { return registers; }
    public MainMemory getMemory() { return memory; }
+   public CacheMemory getCache() { return cache;}
    public MIR getMir() { return mir; }
+   public int getLastMicroAddress() {
+       return lastMicroAddress;
+   }
+   public String getLastMicroInstruction() {
+       return lastMicroInstruction;
+   }
+   
+   public boolean isHalted() { return halted; }
+   private int bitsToInt(int[] bits) {
+       int value=0;
+       for (int bit : bits) value=(value<<1)|(bit&1);
+       return value;
+   }
    
    // zera tudo antes de carregar um novo programa
    public void resetAll() {
+       //memory.reset_memory_storage();
+ 
        mpc.reset_MPC();
        mbr.resetRegister();
        mar.resetRegister();
        registers.reset_all_registers();
+       
        read_pending = false;
        write_pending = false;
-    }
+       halted = false;
+       
+       lastMicroAddress = -1;
+       lastMicroInstruction = "";
+   
+       cache.clear();
+   }
 }

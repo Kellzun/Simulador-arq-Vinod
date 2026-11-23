@@ -11,18 +11,18 @@ import Viadedados.Registers.Memory;
  * @author arthu
  */
 public class MainMemory extends Memory{
-    private int[] null_address= new int[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; // tamanho = 16
+    private static final int WORD_SIZE = 16;
     
     public MainMemory(int size) {
         super(size);
         for (int i=0; i<size; i++) {
-            memory_storage.add(this.null_address);
+            memory_storage.add(new int[WORD_SIZE]);
         }
     }
     public void reset_memory_storage() {
         for (int i=0;i<memory_storage.size(); i++) {
             // a funcao set automaticamente escreve encima da posicao que queremos substituir
-            this.memory_storage.set(i, this.null_address);
+            this.memory_storage.set(i, new int[WORD_SIZE]);
         }
     }
     
@@ -33,14 +33,12 @@ public class MainMemory extends Memory{
         // endereco nao encontrado
         return -1;
     }
-    public int[] read_address(int [] address) {
-        int position = get_position_address(address);
-        if (position == -1) System.out.println("endereco nao foi encontrado");
-        return this.memory_storage.get(position);
+    public int[] read_address(int position) {
+        return this.memory_storage.get(position).clone();
     }
     
     public void write_data(int[] data, int position) {
-        this.memory_storage.set(position, data); 
+        this.memory_storage.set(position, data.clone()); 
     }
     
 }

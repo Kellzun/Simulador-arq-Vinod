@@ -28,7 +28,7 @@ public class Memory {
     
     //ajuste
     public void write_Memory_storage(int[] data, int position) {
-        this.memory_storage.add(position, data);
+        this.memory_storage.set(position, data);
     }
   
     public int[] read_Memory_storage(int position) {
