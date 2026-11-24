@@ -16,6 +16,7 @@ public class Shifter {
     private final int SHIFT_RIGHT = 1;
     private final int SHIFT_LEFT = 2;
     private final int MAINTAIN = 0;
+    
     // guia da op
     // 00 -> não faz nada
     // 01 -> desloca 1 bit para direita

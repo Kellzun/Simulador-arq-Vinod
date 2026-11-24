@@ -11,7 +11,9 @@ public class Assembler {
     private static final Map<String, Integer> OPCODES_SIMPLE = new HashMap<>();
     private static final Map<String, Integer> OPCODES_F_GROUP = new HashMap<>();
     public static final int HALT_WORD = 0xFF00; // grupo F, subopcode reservado 0001
-
+    private static final int VARIABLE_START_ADDRESS = 3000;
+    private static final int VARIABLE_END_ADDRESS = 4095;
+    
     static {
         OPCODES_SIMPLE.put("LODD", 0); OPCODES_SIMPLE.put("STOD", 1);
         OPCODES_SIMPLE.put("ADDD", 2); OPCODES_SIMPLE.put("SUBD", 3);
@@ -26,7 +28,17 @@ public class Assembler {
         OPCODES_F_GROUP.put("RETN", 8); OPCODES_F_GROUP.put("SWAP", 10);
         OPCODES_F_GROUP.put("INSP", 12); OPCODES_F_GROUP.put("DESP", 14);
     }
-
+    private static boolean isDirectMemoryInstruction(String mnemonic) {
+        switch (mnemonic.toUpperCase(Locale.ROOT)) {
+            case "LODD":
+            case "STOD":
+            case "ADDD":
+            case "SUBD":
+                return true;
+            default:
+                return false;
+        }
+    }
     private static class ParsedLine {
         final int sourceLine, address;
         final String mnemonic, operand;
@@ -88,13 +100,57 @@ public class Assembler {
             address++;
         }
         if (address > 4096) throw new IllegalArgumentException("Programa excede os 4096 endereços da memória.");
+        
         // Segunda passagem: resolve operandos e grava as palavras.
-        for (ParsedLine p: parsed) {
+        int nextVariableAddress = Math.max(VARIABLE_START_ADDRESS, address);
+
+        for (ParsedLine p : parsed) {
             try {
-                int[] word=encode(p.mnemonic,p.operand,labels,p.address);
-                memory.write_data(word,p.address);
+                String mnemonic = p.mnemonic.toUpperCase(Locale.ROOT);
+
+                if (isDirectMemoryInstruction(mnemonic)
+                        && p.operand != null) {
+
+                    String variableName = p.operand.trim();
+                    String key = variableName.toUpperCase(Locale.ROOT);
+
+                    boolean isSymbol = variableName.matches(
+                            "[A-Za-z_][A-Za-z0-9_]*"
+                    );
+
+                    if (isSymbol && !labels.containsKey(key)) {
+
+                        // Procura um endereço livre.
+                        while (nextVariableAddress <= VARIABLE_END_ADDRESS
+                                && labels.containsValue(nextVariableAddress)) {
+                            nextVariableAddress++;
+                        }
+
+                        if (nextVariableAddress > VARIABLE_END_ADDRESS) {
+                            throw new IllegalArgumentException(
+                                    "Não há espaço disponível para novas variáveis."
+                            );
+                        }
+
+                        labels.put(key, nextVariableAddress);
+                        nextVariableAddress++;
+                    }
+                }
+
+                int[] word = encode(
+                        p.mnemonic,
+                        p.operand,
+                        labels,
+                        p.address
+                );
+
+                memory.write_data(word, p.address);
+
             } catch (IllegalArgumentException ex) {
-                throw new IllegalArgumentException("Linha " + p.sourceLine + ": " + ex.getMessage(),ex);
+                throw new IllegalArgumentException(
+                        "Linha " + p.sourceLine + ": " + ex.getMessage(),
+                        ex
+                );
             }
         }
     }

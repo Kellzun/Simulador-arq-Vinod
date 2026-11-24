@@ -16,7 +16,7 @@ public class WindowRun extends JFrame {
     private final ControlUnit cu = new ControlUnit();
     private javax.swing.Timer timer;
     private final JTextArea codeArea = new JTextArea(
-        "LOCO 5\\nSTOD 100\\nLOCO 0\\nADDD 100\\nHALT", 16, 34);
+        "LOCO 5\nSTOD 100\nLOCO 0\nADDD 100\nHALT", 16, 34);
     private final JTextArea historyArea = new JTextArea();
     private final JLabel statusLabel = new JLabel("Pronto — monte um programa para começar.");
     private final JLabel cyclesLabel = new JLabel("Ciclos: 0");

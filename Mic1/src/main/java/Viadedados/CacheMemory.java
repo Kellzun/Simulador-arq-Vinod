@@ -12,7 +12,7 @@ import Viadedados.MainMemory;
  */
 public class CacheMemory {
     private static final int SIZE = 256;
-
+    
     private int[][] data = new int[SIZE][16];
     private int[] tags = new int[SIZE];
     private boolean[] valid = new boolean[SIZE];

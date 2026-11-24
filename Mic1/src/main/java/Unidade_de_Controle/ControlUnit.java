@@ -243,7 +243,7 @@ public class ControlUnit {
    
    // zera tudo antes de carregar um novo programa
    public void resetAll() {
-       //memory.reset_memory_storage();
+       memory.reset_memory_storage();
  
        mpc.reset_MPC();
        mbr.resetRegister();
